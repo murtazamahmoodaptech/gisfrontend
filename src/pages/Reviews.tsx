@@ -55,7 +55,7 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     const fetchPublishedFeedback = async () => {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://gisserver.vercel.app/api";
       try {
         const response = await fetch(`${API_BASE_URL}/feedback?published=true`);
         const data = await response.json();

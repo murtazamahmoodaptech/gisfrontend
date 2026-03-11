@@ -17,7 +17,7 @@ export default function FeedbackPage() {
   const [dialogMessage, setDialogMessage] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://gisserver.vercel.app/api";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

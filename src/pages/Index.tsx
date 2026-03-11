@@ -80,7 +80,7 @@ export default function HomePage() {
     if (!code.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:3000/api/coupons?active=true");
+      const response = await fetch("https://gisserver.vercel.app/api/coupons?active=true");
       const data = await response.json();
       
       if (data.success && Array.isArray(data.data)) {

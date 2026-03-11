@@ -157,7 +157,7 @@ export default function AdminDashboard() {
       if (userRoleFilter !== 'all') params.append('role', userRoleFilter);
       if (userStatusFilter !== 'all') params.append('status', userStatusFilter);
 
-      const response = await fetch(`http://localhost:3000/api/users?${params}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/users?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -177,7 +177,7 @@ export default function AdminDashboard() {
   const fetchAppointments = async () => {
     setAppointmentsLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/api/appointments");
+      const response = await fetch("https://gisserver.vercel.app/api/appointments");
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch appointments`);
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
       if (couponSearch) params.append('search', couponSearch);
       if (couponStatusFilter !== 'all') params.append('status', couponStatusFilter);
 
-      const response = await fetch(`http://localhost:3000/api/coupons?${params}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/coupons?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
   const fetchContacts = async () => {
     setContactsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/contact', {
+      const response = await fetch('https://gisserver.vercel.app/api/contact', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/users', {
+      const response = await fetch('https://gisserver.vercel.app/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/users?id=${userId}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/users?id=${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/coupons', {
+      const response = await fetch('https://gisserver.vercel.app/api/coupons', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -349,7 +349,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/coupons?id=${couponId}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/coupons?id=${couponId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -376,7 +376,7 @@ export default function AdminDashboard() {
 
   const handleToggleCouponStatus = async (couponId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/coupons?id=${couponId}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/coupons?id=${couponId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/appointments/${appointmentId}`, {        method: 'PUT',
+      const response = await fetch(`https://gisserver.vercel.app/api/appointments/${appointmentId}`, {        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -453,19 +453,19 @@ export default function AdminDashboard() {
       
       switch (deleteConfirm.type) {
         case 'appointment':
-          endpoint = `http://localhost:3000/api/appointments/${deleteConfirm.id}`;
+          endpoint = `https://gisserver.vercel.app/api/appointments/${deleteConfirm.id}`;
           break;
         case 'user':
-          endpoint = `http://localhost:3000/api/users?id=${deleteConfirm.id}`;
+          endpoint = `https://gisserver.vercel.app/api/users?id=${deleteConfirm.id}`;
           break;
         case 'coupon':
-          endpoint = `http://localhost:3000/api/coupons?id=${deleteConfirm.id}`;
+          endpoint = `https://gisserver.vercel.app/api/coupons?id=${deleteConfirm.id}`;
           break;
         case 'contact':
-          endpoint = `http://localhost:3000/api/contact?id=${deleteConfirm.id}`;
+          endpoint = `https://gisserver.vercel.app/api/contact?id=${deleteConfirm.id}`;
           break;
         case 'feedback':
-          endpoint = `http://localhost:3000/api/feedback?id=${deleteConfirm.id}`;
+          endpoint = `https://gisserver.vercel.app/api/feedback?id=${deleteConfirm.id}`;
           break;
       }
 
@@ -501,7 +501,7 @@ export default function AdminDashboard() {
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/users?id=${userId}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/users?id=${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -524,7 +524,7 @@ export default function AdminDashboard() {
 
   const handleUpdateContactStatus = async (contactId: string, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/contact?id=${contactId}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/contact?id=${contactId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -553,7 +553,7 @@ export default function AdminDashboard() {
   const fetchFeedbacks = async () => {
     setFeedbacksLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/feedback', {
+      const response = await fetch('https://gisserver.vercel.app/api/feedback', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -572,7 +572,7 @@ export default function AdminDashboard() {
 
   const handleUpdateFeedbackStatus = async (feedbackId: string, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/feedback?id=${feedbackId}`, {
+      const response = await fetch(`https://gisserver.vercel.app/api/feedback?id=${feedbackId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -620,7 +620,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/coupons?active=true');
+      const response = await fetch('https://gisserver.vercel.app/api/coupons?active=true');
       const data = await response.json();
       
       if (data.success && Array.isArray(data.data)) {
