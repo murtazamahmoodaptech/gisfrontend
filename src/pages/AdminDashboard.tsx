@@ -428,11 +428,43 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/appointments/${appointmentId}`, {        method: 'PUT',
+      // Prepare the update payload
+      const updatePayload: any = { 
+        status: editStatus 
+      };
+
+      // If a coupon is validated, include it in the update
+      if (aptValidatedCoupon) {
+        updatePayload.coupon = aptValidatedCoupon;
+        updatePayload.coupons = [
+          {
+            code: aptValidatedCoupon.code,
+            discountPercentage: aptValidatedCoupon.discountPercentage,
+            discountAmount: editApt ? calculatePrice(editApt.totalPrice, aptValidatedCoupon.discountPercentage) : 0
+          }
+        ];
+        
+        // Calculate the new total price with coupon discount
+        if (editApt) {
+          const discountAmount = (editApt.totalPrice * aptValidatedCoupon.discountPercentage) / 100;
+          const newTotal = Math.round((editApt.totalPrice - discountAmount) * 100) / 100;
+          updatePayload.totalPrice = newTotal;
+          updatePayload.basePrice = editApt.totalPrice;
+          updatePayload.totalDiscount = Math.round(discountAmount * 100) / 100;
+          updatePayload.discountApplied = true;
+        }
+      } else if (aptCouponCode && !aptValidatedCoupon) {
+        // If user entered a coupon code but it's not valid, don't allow save
+        toast.error('Please apply a valid coupon code or clear the field');
+        return;
+      }
+
+      const response = await fetch(`https://gisserver.vercel.app/api/appointments/${appointmentId}`, {        
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: editStatus })
+        body: JSON.stringify(updatePayload)
       });
       
       if (!response.ok) {
@@ -444,6 +476,9 @@ export default function AdminDashboard() {
         toast.success('Appointment updated successfully');
         setEditApt(null);
         setEditStatus('');
+        setAptCouponCode('');
+        setAptValidatedCoupon(null);
+        setAptCouponError('');
         fetchAppointments();
       } else {
         toast.error(data.message || 'Failed to update appointment');
@@ -1195,7 +1230,17 @@ export default function AdminDashboard() {
 
               {/* Coupon Section */}
               <div className="border-t border-border pt-4 space-y-2">
-                <Label className="text-foreground font-semibold">Apply Coupon Code</Label>
+                <div className="flex justify-between items-center">
+                  <Label className="text-foreground font-semibold">Apply Coupon Code</Label>
+                  {aptCouponCode && (
+                    <button 
+                      onClick={() => { setAptCouponCode(""); setAptValidatedCoupon(null); setAptCouponError(""); }}
+                      className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 <Input
                   type="text"
                   value={aptCouponCode}
@@ -1204,10 +1249,28 @@ export default function AdminDashboard() {
                   className="bg-secondary border-border text-foreground uppercase"
                 />
                 {aptCouponError && <p className="text-red-400 text-sm">{aptCouponError}</p>}
-                {aptValidatedCoupon && (
-                  <div className="p-2 rounded bg-primary/10 border border-primary/30 text-sm">
-                    <p className="font-semibold text-primary">{aptValidatedCoupon.code} Applied</p>
-                    <p className="text-muted-foreground">{aptValidatedCoupon.discountPercentage}% discount</p>
+                {aptValidatedCoupon && editApt && (
+                  <div className="space-y-2">
+                    <div className="p-2 rounded bg-primary/10 border border-primary/30 text-sm">
+                      <p className="font-semibold text-primary">{aptValidatedCoupon.code} Applied</p>
+                      <p className="text-muted-foreground">{aptValidatedCoupon.discountPercentage}% discount</p>
+                    </div>
+                    
+                    {/* Price Breakdown */}
+                    <div className="bg-secondary rounded p-3 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Original Price:</span>
+                        <span className="text-foreground font-mono">${editApt.totalPrice.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-primary">
+                        <span>Discount ({aptValidatedCoupon.discountPercentage}%):</span>
+                        <span className="font-semibold">-${((editApt.totalPrice * aptValidatedCoupon.discountPercentage) / 100).toFixed(2)}</span>
+                      </div>
+                      <div className="border-t border-border pt-2 flex justify-between">
+                        <span className="text-foreground font-semibold">New Total:</span>
+                        <span className="text-gradient-sky font-bold text-lg">${calculatePrice(editApt.totalPrice, aptValidatedCoupon.discountPercentage).toFixed(2)}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
