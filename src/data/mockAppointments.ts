@@ -1,3 +1,9 @@
+export interface CouponInfo {
+  code: string;
+  discountPercentage: number;
+  discountAmount?: number;
+}
+
 export interface Appointment {
   _id?: string;
   id?: string;
@@ -13,9 +19,12 @@ export interface Appointment {
   vehicleCategory: string;
   date: string;
   timeSlot: string;
-  promoCode: string;
+  promoCode?: string;
+  coupons?: CouponInfo[];
   discountApplied: boolean;
   totalPrice: number;
+  basePrice?: number;
+  totalDiscount?: number;
   status: "Pending" | "Confirmed" | "Completed" | "Cancelled";
   createdAt: string;
 }
