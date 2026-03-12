@@ -10,24 +10,42 @@ interface Props {
 export default function SectionHeading({ subtitle, title, description, align = "center" }: Props) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
+      transition={{ duration: 0.7, ease: "easeOut" }}
       className={align === "center" ? "text-center" : "text-left"}
     >
       {subtitle && (
-        <span className="text-primary font-medium text-sm uppercase tracking-[0.2em] mb-2 block">
+        <motion.span
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+          className="text-primary font-medium text-sm uppercase tracking-[0.2em] mb-2 block text-hover-glow"
+        >
           {subtitle}
-        </span>
+        </motion.span>
       )}
-      <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+      <motion.h2 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
+        className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
+      >
         {title}
-      </h2>
+      </motion.h2>
       {description && (
-        <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
+          className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed"
+        >
           {description}
-        </p>
+        </motion.p>
       )}
     </motion.div>
   );
