@@ -62,7 +62,7 @@ export default function HomePage() {
   const [couponError, setCouponError] = useState("");
   const [couponValid, setCouponValid] = useState(false);
   const [couponDiscount, setCouponDiscount] = useState(0);
-
+const [checkingCoupon, setCheckingCoupon] = useState(false);
   // Show coupon popup on page load
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -71,38 +71,43 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const validateCoupon = async (code: string) => {
-    setCouponCode(code.toUpperCase());
-    setCouponError("");
-    setCouponValid(false);
-    setCouponDiscount(0);
+const validateCoupon = async () => {
+  if (!couponCode.trim()) {
+    setCouponError("Please enter a coupon code");
+    return;
+  }
 
-    if (!code.trim()) return;
+  setCheckingCoupon(true);
+  setCouponError("");
+  setCouponValid(false);
+  setCouponDiscount(0);
 
-    try {
-      const response = await fetch("https://gisserver.vercel.app/api/coupons?active=true");
-      const data = await response.json();
-      
-      if (data.success && Array.isArray(data.data)) {
-        const found = data.data.find((c: any) => c.code === code.toUpperCase());
-        if (found) {
-          setCouponValid(true);
-          setCouponDiscount(found.discountPercentage);
-          setCouponError("");
-          // Store in localStorage for use on booking page
-          localStorage.setItem("discount_code", found.code);
-          localStorage.setItem("discount_percentage", found.discountPercentage.toString());
-          toast.success(`${found.code} applied! ${found.discountPercentage}% discount`);
-        } else {
-          setCouponError("Invalid or expired coupon code");
-          setCouponValid(false);
-        }
+  try {
+    const response = await fetch("https://gisserver.vercel.app/api/coupons?active=true");
+    const data = await response.json();
+
+    if (data.success && Array.isArray(data.data)) {
+      const found = data.data.find((c: any) => c.code === couponCode.toUpperCase());
+
+      if (found) {
+        setCouponValid(true);
+        setCouponDiscount(found.discountPercentage);
+
+        localStorage.setItem("discount_code", found.code);
+        localStorage.setItem("discount_percentage", found.discountPercentage.toString());
+
+        toast.success(`${found.code} applied! ${found.discountPercentage}% discount`);
+      } else {
+        setCouponError("Invalid or expired coupon code");
       }
-    } catch (error) {
-      console.error("[v0] Error validating coupon:", error);
-      setCouponError("Error validating coupon");
     }
-  };
+  } catch (error) {
+    console.error("Error validating coupon:", error);
+    setCouponError("Error validating coupon");
+  } finally {
+    setCheckingCoupon(false);
+  }
+};
 
   const handleCloseModal = () => {
     setShowCouponModal(false);
@@ -113,12 +118,11 @@ export default function HomePage() {
       {/* Coupon Modal */}
       <Dialog open={showCouponModal} onOpenChange={setShowCouponModal}>
         <DialogContent className="bg-gradient-card border-2 border-primary/50 text-foreground max-w-lg">
-          <button onClick={handleCloseModal} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors">
-            <X className="w-5 h-5" />
-          </button>
+     
           <div className="text-center space-y-3 pt-2">
-            <div className="text-4xl">✨</div>
-            <DialogTitle className="font-display text-3xl bg-gradient-to-r from-primary via-primary/70 to-primary bg-clip-text text-transparent">Unlock Your Exclusive Discount</DialogTitle>
+<div className="flex justify-center">
+  <Sparkles className="w-10 h-10 text-primary" />
+</div>            <DialogTitle className="font-display text-3xl bg-gradient-to-r from-primary via-primary/70 to-primary bg-clip-text text-transparent">Unlock Your Exclusive Discount</DialogTitle>
             <p className="text-muted-foreground text-sm max-w-xs mx-auto">Have a coupon code? Enter it below and get instant savings on our services!</p>
           </div>
 
@@ -128,7 +132,7 @@ export default function HomePage() {
               <Input
                 type="text"
                 value={couponCode}
-                onChange={(e) => validateCoupon(e.target.value)}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                 placeholder="e.g., FIRST10"
                 className="bg-secondary border-2 border-border text-foreground text-center text-lg font-semibold uppercase placeholder:text-muted-foreground/50 py-6"
                 autoFocus
@@ -154,22 +158,27 @@ export default function HomePage() {
             )}
           </div>
 
-          <DialogFooter className="flex gap-2 pt-4 border-t border-border">
-            <Button 
-              variant="outline" 
-              onClick={handleCloseModal} 
-              className="flex-1 border-border text-muted-foreground hover:bg-secondary"
-            >
-              {couponValid ? "Continue" : "Skip for Now"}
-            </Button>
-            {couponValid && (
-              <Link to="/book" className="flex-1">
-                <Button className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold hover:shadow-lg transition-all">
-                  Book Now & Save {couponDiscount}%
-                </Button>
-              </Link>
-            )}
-          </DialogFooter>
+         <DialogFooter className="flex gap-2 pt-4 border-t border-border">
+
+  {!couponValid && (
+    <Button
+      onClick={validateCoupon}
+      disabled={checkingCoupon}
+      className="w-full mt-3 bg-primary text-primary-foreground"
+    >
+      {checkingCoupon ? "Checking..." : "Check Code"}
+    </Button>
+  )}
+
+  {couponValid && (
+    <Link to="/book" className="flex-1">
+      <Button className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold hover:shadow-lg transition-all">
+        Book Now & Save {couponDiscount}%
+      </Button>
+    </Link>
+  )}
+
+</DialogFooter>
         </DialogContent>
       </Dialog>
 

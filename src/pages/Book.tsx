@@ -39,7 +39,7 @@ export default function BookPage() {
      address: "",
      vehicleName: "",
      make: "",
-     model: "",
+     vehicleModel: "",
      year: "",
      promoCode: "",
      timeSlot: "",
@@ -140,7 +140,7 @@ export default function BookPage() {
           address: form.address,
           vehicleName: form.vehicleName,
           make: form.make,
-          model: form.model,
+          vehicleModel: form.vehicleModel,
           year: form.year,
           serviceType: serviceType,
           vehicleCategory: items[0]?.vehicleCategory || "Car",
@@ -178,7 +178,7 @@ export default function BookPage() {
         address: "",
         vehicleName: "",
         make: "",
-        model: "",
+        vehicleModel: "",
         year: "",
         promoCode: "",
         timeSlot: "",
@@ -244,9 +244,9 @@ export default function BookPage() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-gradient-card border border-border rounded-xl p-6 lg:p-8 space-y-4 card-hover">
               <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2"><Car className="w-5 h-5 text-primary" /> Vehicle Information</h3>
               <div className="grid md:grid-cols-2 gap-4">
-                <div><Label className="text-foreground">Vehicle Name</Label><Input value={form.vehicleName} onChange={(e) => update("vehicleName", e.target.value)} placeholder="e.g. Tesla Model 3" className="bg-secondary border-border text-foreground mt-1" /></div>
+                <div><Label className="text-foreground">Vehicle Name</Label><Input value={form.vehicleName} onChange={(e) => update("vehicleName", e.target.value)} placeholder="e.g. Tesla vehicleModel 3" className="bg-secondary border-border text-foreground mt-1" /></div>
                 <div><Label className="text-foreground">Make</Label><Input value={form.make} onChange={(e) => update("make", e.target.value)} placeholder="e.g. Tesla" className="bg-secondary border-border text-foreground mt-1" /></div>
-                <div><Label className="text-foreground">Model</Label><Input value={form.model} onChange={(e) => update("model", e.target.value)} placeholder="e.g. Model 3" className="bg-secondary border-border text-foreground mt-1" /></div>
+                <div><Label className="text-foreground">Model</Label><Input value={form.vehicleModel} onChange={(e) => update("vehicleModel", e.target.value)} placeholder="e.g. Model 3" className="bg-secondary border-border text-foreground mt-1" /></div>
                 <div><Label className="text-foreground">Year</Label><Input value={form.year} onChange={(e) => update("year", e.target.value)} placeholder="e.g. 2024" className="bg-secondary border-border text-foreground mt-1" /></div>
               </div>
             </motion.div>

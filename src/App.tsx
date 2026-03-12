@@ -37,7 +37,6 @@ const App = () => (
       <CartProvider>
         <Toaster />
         <Sonner />
-        <PromoPopup />
         <BrowserRouter>
           <AdminAuthProvider>
             <ScrollToTop />
