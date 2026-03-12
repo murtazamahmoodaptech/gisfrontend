@@ -348,6 +348,20 @@ export default function AdminDashboard() {
       return;
     }
 
+    // Validate discount percentage
+    const discountNum = Number(editCouponData.discountPercentage);
+    if (discountNum < 1 || discountNum > 100) {
+      toast.error('Discount must be between 1 and 100');
+      return;
+    }
+
+    // Validate expiry date
+    const expiryDate = new Date(editCouponData.expiryDate);
+    if (expiryDate <= new Date()) {
+      toast.error('Expiry date must be in the future');
+      return;
+    }
+
     try {
       const response = await fetch(`https://gisserver.vercel.app/api/coupons?id=${couponId}`, {
         method: 'PUT',
@@ -356,7 +370,7 @@ export default function AdminDashboard() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          discountPercentage: Number(editCouponData.discountPercentage),
+          discountPercentage: discountNum,
           expiryDate: editCouponData.expiryDate
         })
       });
@@ -364,7 +378,10 @@ export default function AdminDashboard() {
       if (data.success) {
         toast.success('Coupon updated successfully');
         setEditingCoupon(null);
-        fetchCoupons();
+        setEditCouponData({ discountPercentage: "", expiryDate: "" });
+        // Refresh both coupons and appointments to reflect the changes
+        await fetchCoupons();
+        await fetchAppointments();
       } else {
         toast.error(data.message || 'Failed to update coupon');
       }
@@ -387,7 +404,9 @@ export default function AdminDashboard() {
       const data = await response.json();
       if (data.success) {
         toast.success('Coupon status updated');
-        fetchCoupons();
+        // Refresh both coupons and appointments to reflect the changes
+        await fetchCoupons();
+        await fetchAppointments();
       } else {
         toast.error(data.message || 'Failed to update coupon');
       }
@@ -409,11 +428,43 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/appointments/${appointmentId}`, {        method: 'PUT',
+      // Prepare the update payload
+      const updatePayload: any = { 
+        status: editStatus 
+      };
+
+      // If a coupon is validated, include it in the update
+      if (aptValidatedCoupon) {
+        updatePayload.coupon = aptValidatedCoupon;
+        updatePayload.coupons = [
+          {
+            code: aptValidatedCoupon.code,
+            discountPercentage: aptValidatedCoupon.discountPercentage,
+            discountAmount: editApt ? calculatePrice(editApt.totalPrice, aptValidatedCoupon.discountPercentage) : 0
+          }
+        ];
+        
+        // Calculate the new total price with coupon discount
+        if (editApt) {
+          const discountAmount = (editApt.totalPrice * aptValidatedCoupon.discountPercentage) / 100;
+          const newTotal = Math.round((editApt.totalPrice - discountAmount) * 100) / 100;
+          updatePayload.totalPrice = newTotal;
+          updatePayload.basePrice = editApt.totalPrice;
+          updatePayload.totalDiscount = Math.round(discountAmount * 100) / 100;
+          updatePayload.discountApplied = true;
+        }
+      } else if (aptCouponCode && !aptValidatedCoupon) {
+        // If user entered a coupon code but it's not valid, don't allow save
+        toast.error('Please apply a valid coupon code or clear the field');
+        return;
+      }
+
+      const response = await fetch(`https://gisserver.vercel.app/api/appointments/${appointmentId}`, {        
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: editStatus })
+        body: JSON.stringify(updatePayload)
       });
       
       if (!response.ok) {
@@ -425,6 +476,9 @@ export default function AdminDashboard() {
         toast.success('Appointment updated successfully');
         setEditApt(null);
         setEditStatus('');
+        setAptCouponCode('');
+        setAptValidatedCoupon(null);
+        setAptCouponError('');
         fetchAppointments();
       } else {
         toast.error(data.message || 'Failed to update appointment');
@@ -485,7 +539,10 @@ export default function AdminDashboard() {
         
         if (deleteConfirm.type === 'appointment') fetchAppointments();
         else if (deleteConfirm.type === 'user') fetchUsers();
-        else if (deleteConfirm.type === 'coupon') fetchCoupons();
+        else if (deleteConfirm.type === 'coupon') {
+          await fetchCoupons();
+          await fetchAppointments();
+        }
         else if (deleteConfirm.type === 'contact') fetchContacts();
         else if (deleteConfirm.type === 'feedback') fetchFeedbacks();
       } else {
@@ -816,9 +873,17 @@ export default function AdminDashboard() {
                         <td className="px-4 py-3"><Badge variant="outline" className={`text-xs ${STATUS_COLORS[apt.status]}`}>{apt.status}</Badge></td>
                         <td className="px-4 py-3">
                           <span className="text-foreground font-semibold">${apt.totalPrice.toFixed(2)}</span>
-                          {apt.promoCode && apt.discountApplied && (
-                            <div className="text-xs text-primary">Code: {apt.promoCode}</div>
-                          )}
+                          {apt.coupons && apt.coupons.length > 0 ? (
+                            apt.coupons.map((coupon, idx) => (
+                              <div key={idx} className="text-xs text-primary flex items-center gap-1 mt-1">
+                                <Tag className="w-3 h-3" /> {coupon.code} ({coupon.discountPercentage}%)
+                              </div>
+                            ))
+                          ) : apt.promoCode && apt.discountApplied ? (
+                            <div className="text-xs text-primary flex items-center gap-1 mt-1">
+                              <Tag className="w-3 h-3" /> {apt.promoCode}
+                            </div>
+                          ) : null}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
@@ -1006,7 +1071,13 @@ export default function AdminDashboard() {
                       <span className="text-xs text-muted-foreground">{coupon.isActive ? "Active" : "Inactive"}</span>
                       <Switch checked={coupon.isActive} onCheckedChange={() => handleToggleCouponStatus(coupon._id, coupon.isActive)} />
                     </div>
-                    <button onClick={() => { setEditingCoupon(coupon); setEditCouponData({ discountPercentage: coupon.discountPercentage.toString(), expiryDate: coupon.expiryDate.split('T')[0] }); }} className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors">
+                    <button onClick={() => { 
+                      setEditingCoupon(coupon); 
+                      setEditCouponData({ 
+                        discountPercentage: coupon.discountPercentage.toString(), 
+                        expiryDate: typeof coupon.expiryDate === 'string' ? coupon.expiryDate.split('T')[0] : new Date(coupon.expiryDate).toISOString().split('T')[0]
+                      }); 
+                    }} className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDeleteCoupon(coupon._id)} className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-red-400 transition-colors">
@@ -1087,9 +1158,54 @@ export default function AdminDashboard() {
           </DialogHeader>
           {viewApt && (
             <div className="space-y-3 text-sm">
-              {[["ID", viewApt.id], ["Customer", viewApt.fullName], ["Phone", viewApt.phone], ["Email", viewApt.email], ["Address", viewApt.address], ["Vehicle", `${viewApt.year} ${viewApt.make} ${viewApt.model}`], ["Category", viewApt.vehicleCategory], ["Service", viewApt.serviceType], ["Date", `${viewApt.date} at ${viewApt.timeSlot}`], ["Promo Code", viewApt.promoCode || "None"], ["Status", viewApt.status], ["Total", `$${viewApt.totalPrice.toFixed(2)}`]].map(([label, val]) => (
+              {[["ID", viewApt.id], ["Customer", viewApt.fullName], ["Phone", viewApt.phone], ["Email", viewApt.email], ["Address", viewApt.address], ["Vehicle", `${viewApt.year} ${viewApt.make} ${viewApt.model}`], ["Category", viewApt.vehicleCategory], ["Service", viewApt.serviceType], ["Date", `${viewApt.date} at ${viewApt.timeSlot}`], ["Status", viewApt.status]].map(([label, val]) => (
                 <div key={label} className="flex justify-between"><span className="text-muted-foreground">{label}</span><span className="text-foreground font-medium">{val}</span></div>
               ))}
+              
+              {/* Pricing Section */}
+              <div className="border-t border-border pt-3 space-y-2">
+                {viewApt.basePrice && (
+                  <div className="flex justify-between"><span className="text-muted-foreground">Base Price</span><span className="text-foreground">${viewApt.basePrice.toFixed(2)}</span></div>
+                )}
+                
+                {/* Coupon Applied Section */}
+                {viewApt.coupons && viewApt.coupons.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="font-semibold text-primary flex items-center gap-2">
+                      <Tag className="w-4 h-4" />
+                      Coupon Applied
+                    </div>
+                    {viewApt.coupons.map((coupon, idx) => (
+                      <div key={idx} className="bg-primary/10 border border-primary/30 rounded p-2 space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Code:</span>
+                          <span className="text-primary font-mono font-bold">{coupon.code}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Discount:</span>
+                          <span className="text-primary">{coupon.discountPercentage}%</span>
+                        </div>
+                        {coupon.discountAmount && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Amount:</span>
+                            <span className="text-primary">-${coupon.discountAmount.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : viewApt.promoCode ? (
+                  <div className="flex justify-between"><span className="text-muted-foreground">Promo Code</span><span className="text-primary font-mono font-bold">{viewApt.promoCode}</span></div>
+                ) : (
+                  <div className="flex justify-between"><span className="text-muted-foreground">Coupon</span><span className="text-muted-foreground">None</span></div>
+                )}
+                
+                {viewApt.totalDiscount && viewApt.totalDiscount > 0 && (
+                  <div className="flex justify-between pt-2 border-t border-border"><span className="text-primary">Total Discount</span><span className="text-primary">-${viewApt.totalDiscount.toFixed(2)}</span></div>
+                )}
+              </div>
+              
+              <div className="flex justify-between pt-2 border-t border-border font-bold"><span className="text-foreground">Total</span><span className="text-gradient-sky">${viewApt.totalPrice.toFixed(2)}</span></div>
             </div>
           )}
         </DialogContent>
@@ -1114,7 +1230,17 @@ export default function AdminDashboard() {
 
               {/* Coupon Section */}
               <div className="border-t border-border pt-4 space-y-2">
-                <Label className="text-foreground font-semibold">Apply Coupon Code</Label>
+                <div className="flex justify-between items-center">
+                  <Label className="text-foreground font-semibold">Apply Coupon Code</Label>
+                  {aptCouponCode && (
+                    <button 
+                      onClick={() => { setAptCouponCode(""); setAptValidatedCoupon(null); setAptCouponError(""); }}
+                      className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 <Input
                   type="text"
                   value={aptCouponCode}
@@ -1123,10 +1249,28 @@ export default function AdminDashboard() {
                   className="bg-secondary border-border text-foreground uppercase"
                 />
                 {aptCouponError && <p className="text-red-400 text-sm">{aptCouponError}</p>}
-                {aptValidatedCoupon && (
-                  <div className="p-2 rounded bg-primary/10 border border-primary/30 text-sm">
-                    <p className="font-semibold text-primary">{aptValidatedCoupon.code} Applied</p>
-                    <p className="text-muted-foreground">{aptValidatedCoupon.discountPercentage}% discount</p>
+                {aptValidatedCoupon && editApt && (
+                  <div className="space-y-2">
+                    <div className="p-2 rounded bg-primary/10 border border-primary/30 text-sm">
+                      <p className="font-semibold text-primary">{aptValidatedCoupon.code} Applied</p>
+                      <p className="text-muted-foreground">{aptValidatedCoupon.discountPercentage}% discount</p>
+                    </div>
+                    
+                    {/* Price Breakdown */}
+                    <div className="bg-secondary rounded p-3 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Original Price:</span>
+                        <span className="text-foreground font-mono">${editApt.totalPrice.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-primary">
+                        <span>Discount ({aptValidatedCoupon.discountPercentage}%):</span>
+                        <span className="font-semibold">-${((editApt.totalPrice * aptValidatedCoupon.discountPercentage) / 100).toFixed(2)}</span>
+                      </div>
+                      <div className="border-t border-border pt-2 flex justify-between">
+                        <span className="text-foreground font-semibold">New Total:</span>
+                        <span className="text-gradient-sky font-bold text-lg">${calculatePrice(editApt.totalPrice, aptValidatedCoupon.discountPercentage).toFixed(2)}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1214,7 +1358,7 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* Edit Coupon Dialog */}
-      <Dialog open={!!editingCoupon} onOpenChange={() => setEditingCoupon(null)}>
+      <Dialog open={!!editingCoupon} onOpenChange={() => { setEditingCoupon(null); setEditCouponData({ discountPercentage: "", expiryDate: "" }); }}>
         <DialogContent className="bg-card border-border text-foreground max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Edit Coupon</DialogTitle>
@@ -1222,13 +1366,37 @@ export default function AdminDashboard() {
           </DialogHeader>
           {editingCoupon && (
             <div className="space-y-4">
-              <div><Label className="text-foreground">Code</Label><Input value={editingCoupon.code} disabled className="bg-secondary border-border text-muted-foreground mt-1" /></div>
-              <div><Label className="text-foreground">Discount %</Label><Input type="number" value={editCouponData.discountPercentage} onChange={(e) => setEditCouponData({ ...editCouponData, discountPercentage: e.target.value })} min="1" max="100" className="bg-secondary border-border text-foreground mt-1" /></div>
-              <div><Label className="text-foreground">Expiry Date</Label><Input type="date" value={editCouponData.expiryDate} onChange={(e) => setEditCouponData({ ...editCouponData, expiryDate: e.target.value })} className="bg-secondary border-border text-foreground mt-1" /></div>
+              <div>
+                <Label className="text-foreground">Code</Label>
+                <Input value={editingCoupon.code} disabled className="bg-secondary border-border text-muted-foreground mt-1 font-mono font-bold" />
+              </div>
+              <div>
+                <Label className="text-foreground">Discount % <span className="text-destructive">*</span></Label>
+                <Input 
+                  type="number" 
+                  value={editCouponData.discountPercentage} 
+                  onChange={(e) => setEditCouponData({ ...editCouponData, discountPercentage: e.target.value })} 
+                  min="1" 
+                  max="100" 
+                  placeholder="10"
+                  className="bg-secondary border-border text-foreground mt-1" 
+                />
+                <p className="text-xs text-muted-foreground mt-1">Must be between 1-100%</p>
+              </div>
+              <div>
+                <Label className="text-foreground">Expiry Date <span className="text-destructive">*</span></Label>
+                <Input 
+                  type="date" 
+                  value={editCouponData.expiryDate} 
+                  onChange={(e) => setEditCouponData({ ...editCouponData, expiryDate: e.target.value })} 
+                  className="bg-secondary border-border text-foreground mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Must be a future date</p>
+              </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingCoupon(null)} className="border-border text-muted-foreground">Cancel</Button>
+            <Button variant="outline" onClick={() => { setEditingCoupon(null); setEditCouponData({ discountPercentage: "", expiryDate: "" }); }} className="border-border text-muted-foreground">Cancel</Button>
             <Button onClick={() => editingCoupon && handleUpdateCoupon(editingCoupon._id)} className="bg-gradient-sky text-primary-foreground font-semibold hover:opacity-90">Save Changes</Button>
           </DialogFooter>
         </DialogContent>
