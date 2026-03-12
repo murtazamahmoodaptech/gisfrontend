@@ -379,7 +379,9 @@ export default function AdminDashboard() {
         toast.success('Coupon updated successfully');
         setEditingCoupon(null);
         setEditCouponData({ discountPercentage: "", expiryDate: "" });
-        fetchCoupons();
+        // Refresh both coupons and appointments to reflect the changes
+        await fetchCoupons();
+        await fetchAppointments();
       } else {
         toast.error(data.message || 'Failed to update coupon');
       }
@@ -402,7 +404,9 @@ export default function AdminDashboard() {
       const data = await response.json();
       if (data.success) {
         toast.success('Coupon status updated');
-        fetchCoupons();
+        // Refresh both coupons and appointments to reflect the changes
+        await fetchCoupons();
+        await fetchAppointments();
       } else {
         toast.error(data.message || 'Failed to update coupon');
       }
@@ -500,7 +504,10 @@ export default function AdminDashboard() {
         
         if (deleteConfirm.type === 'appointment') fetchAppointments();
         else if (deleteConfirm.type === 'user') fetchUsers();
-        else if (deleteConfirm.type === 'coupon') fetchCoupons();
+        else if (deleteConfirm.type === 'coupon') {
+          await fetchCoupons();
+          await fetchAppointments();
+        }
         else if (deleteConfirm.type === 'contact') fetchContacts();
         else if (deleteConfirm.type === 'feedback') fetchFeedbacks();
       } else {
