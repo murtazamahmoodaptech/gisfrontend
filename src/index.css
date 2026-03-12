@@ -280,7 +280,7 @@
 
   /* Border glow animation */
   .border-glow-hover {
-    @apply relative transition-all duration-400;
+    @apply relative transition-all duration-500;
     background-clip: padding-box;
   }
   .border-glow-hover::before {
