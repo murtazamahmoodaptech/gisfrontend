@@ -81,6 +81,8 @@ export default function AdminDashboard() {
   const isAdmin = userRole === 'admin';
   const isUser = userRole === 'user';
   
+  console.log("[v0] AdminDashboard - userRole:", userRole, "isAdmin:", isAdmin, "isUser:", isUser);
+  
   // Appointments state
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);

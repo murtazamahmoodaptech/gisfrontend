@@ -37,12 +37,15 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
       if (data.success && data.token) {
         const role = data.role || 'user';
+        console.log("[v0] Login response:", data);
+        console.log("[v0] Detected role:", role);
         setIsAuthenticated(true);
         setToken(data.token);
         setUserRole(role);
         sessionStorage.setItem("admin_auth", "true");
         sessionStorage.setItem("admin_token", data.token);
         sessionStorage.setItem("user_role", role);
+        console.log("[v0] Stored user role in sessionStorage:", role);
         return true;
       }
 
