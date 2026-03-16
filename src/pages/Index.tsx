@@ -12,9 +12,9 @@ import SectionHeading from "@/components/SectionHeading";
 import { toast } from "sonner";
 import heroVideo from "@/assets/hero-video.mp4";
 import heroImage from "@/assets/hero-car.jpg";
-import interiorImg from "@/assets/detail-interior.jpg";
-import exteriorImg from "@/assets/detail-exterior.jpg";
-import waxImg from "@/assets/detail-wax.jpg";
+import interiorImg from "/interior-detail.jpg";
+import exteriorImg from "/exterior-detail.jpg";
+import waxImg from "/wax-detail.jpg";
 
 const services = [
   { title: "Interior Detailing", desc: "Deep clean every surface, leather conditioning, and odor removal for a fresh cabin feel. We treat seats, carpets, dashboards, and every hidden crevice.", image: interiorImg, price: "From $199.99" },

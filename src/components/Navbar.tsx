@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, Mail, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/contexts/ThemeContext";
 import logo from "@/assets/logo.png";
 
 const NAV_LINKS = [
@@ -17,6 +18,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-dark border-b border-border">
@@ -41,10 +43,26 @@ export default function Navbar() {
         </div>
 
         <div className="hidden lg:flex items-center gap-4">
+          <a href="mailto:info@globalintegratedsupport.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Mail className="w-4 h-4" />
+            info@globalintegratedsupport.com
+          </a>
+          <div className="w-px h-6 bg-border"></div>
           <a href="tel:+15551234567" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
             <Phone className="w-4 h-4" />
             (555) 123-4567
           </a>
+          <button 
+            onClick={toggleTheme}
+            className="p-2 rounded-lg bg-secondary/50 hover:bg-primary/20 transition-colors ml-2"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-5 h-5 text-primary" />
+            ) : (
+              <Moon className="w-5 h-5 text-foreground" />
+            )}
+          </button>
           <Link to="/book">
             <Button className="bg-gradient-sky text-primary-foreground font-semibold px-6 hover:opacity-90 transition-opacity">
               Book Now
@@ -80,6 +98,26 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              <a href="mailto:info@globalintegratedsupport.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Mail className="w-4 h-4" />
+                info@globalintegratedsupport.com
+              </a>
+              <div className="flex items-center gap-2 pt-2">
+                <button 
+                  onClick={toggleTheme}
+                  className="p-2 rounded-lg bg-secondary/50 hover:bg-primary/20 transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-5 h-5 text-primary" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-foreground" />
+                  )}
+                </button>
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                  {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                </span>
+              </div>
               <Link to="/book" onClick={() => setOpen(false)}>
                 <Button className="w-full bg-gradient-sky text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
                   Book Now

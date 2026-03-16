@@ -11,6 +11,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { AdminAuthProvider, useAdminAuth } from "@/contexts/AdminAuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
 import Book from "./pages/Book";
@@ -35,14 +36,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <CartProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AdminAuthProvider>
-            <ScrollToTop />
-            <PageLoader />
-            <AnimatedBackground />
-            <FloatingContact />
+        <ThemeProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AdminAuthProvider>
+              <ScrollToTop />
+              <PageLoader />
+              <AnimatedBackground />
+              <FloatingContact />
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />
@@ -60,6 +62,7 @@ const App = () => (
             </Routes>
           </AdminAuthProvider>
         </BrowserRouter>
+        </ThemeProvider>
       </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>

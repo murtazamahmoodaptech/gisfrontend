@@ -55,8 +55,8 @@ export default function Footer() {
               <a href="tel:+15551234567" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <Phone className="w-4 h-4 text-primary" /> (555) 123-4567
               </a>
-              <a href="mailto:support@globalintegratedsupport.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                <Mail className="w-4 h-4 text-primary" /> support@globalintegratedsupport.com
+              <a href="mailto:info@globalintegratedsupport.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Mail className="w-4 h-4 text-primary" /> info@globalintegratedsupport.com
               </a>
               <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 text-primary mt-0.5" />
