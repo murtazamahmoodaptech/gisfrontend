@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Appointment, MOCK_APPOINTMENTS } from "@/data/mockAppointments";
+import { API_ENDPOINTS } from "@/config/api";
 
 interface User {
   _id: string;
@@ -73,8 +74,12 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AdminDashboard() {
-  const { logout, token } = useAdminAuth();
+  const { logout, token, userRole } = useAdminAuth();
   const navigate = useNavigate();
+
+  // Role-based access control
+  const isAdmin = userRole === 'admin';
+  const isUser = userRole === 'user';
   
   // Appointments state
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -157,7 +162,7 @@ export default function AdminDashboard() {
       if (userRoleFilter !== 'all') params.append('role', userRoleFilter);
       if (userStatusFilter !== 'all') params.append('status', userStatusFilter);
 
-      const response = await fetch(`https://gisserver.vercel.app/api/users?${params}`, {
+      const response = await fetch(`${API_ENDPOINTS.USERS.LIST}?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -177,7 +182,7 @@ export default function AdminDashboard() {
   const fetchAppointments = async () => {
     setAppointmentsLoading(true);
     try {
-      const response = await fetch("https://gisserver.vercel.app/api/appointments");
+      const response = await fetch(API_ENDPOINTS.APPOINTMENTS.LIST);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to fetch appointments`);
@@ -208,7 +213,7 @@ export default function AdminDashboard() {
       if (couponSearch) params.append('search', couponSearch);
       if (couponStatusFilter !== 'all') params.append('status', couponStatusFilter);
 
-      const response = await fetch(`https://gisserver.vercel.app/api/coupons?${params}`, {
+      const response = await fetch(`${API_ENDPOINTS.COUPONS.LIST}?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -228,7 +233,7 @@ export default function AdminDashboard() {
   const fetchContacts = async () => {
     setContactsLoading(true);
     try {
-      const response = await fetch('https://gisserver.vercel.app/api/contact', {
+      const response = await fetch(API_ENDPOINTS.CONTACT.LIST, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -252,7 +257,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch('https://gisserver.vercel.app/api/users', {
+      const response = await fetch(API_ENDPOINTS.USERS.CREATE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -282,7 +287,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/users?id=${userId}`, {
+      const response = await fetch(API_ENDPOINTS.USERS.DELETE(userId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -315,7 +320,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch('https://gisserver.vercel.app/api/coupons', {
+      const response = await fetch(API_ENDPOINTS.COUPONS.CREATE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -363,7 +368,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/coupons?id=${couponId}`, {
+      const response = await fetch(API_ENDPOINTS.COUPONS.UPDATE(couponId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -393,7 +398,7 @@ export default function AdminDashboard() {
 
   const handleToggleCouponStatus = async (couponId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/coupons?id=${couponId}`, {
+      const response = await fetch(API_ENDPOINTS.COUPONS.UPDATE(couponId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -459,7 +464,7 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await fetch(`https://gisserver.vercel.app/api/appointments/${appointmentId}`, {        
+      const response = await fetch(API_ENDPOINTS.APPOINTMENTS.UPDATE(appointmentId), {        
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -507,19 +512,19 @@ export default function AdminDashboard() {
       
       switch (deleteConfirm.type) {
         case 'appointment':
-          endpoint = `https://gisserver.vercel.app/api/appointments/${deleteConfirm.id}`;
+          endpoint = API_ENDPOINTS.APPOINTMENTS.DELETE(deleteConfirm.id);
           break;
         case 'user':
-          endpoint = `https://gisserver.vercel.app/api/users?id=${deleteConfirm.id}`;
+          endpoint = API_ENDPOINTS.USERS.DELETE(deleteConfirm.id);
           break;
         case 'coupon':
-          endpoint = `https://gisserver.vercel.app/api/coupons?id=${deleteConfirm.id}`;
+          endpoint = API_ENDPOINTS.COUPONS.DELETE(deleteConfirm.id);
           break;
         case 'contact':
-          endpoint = `https://gisserver.vercel.app/api/contact?id=${deleteConfirm.id}`;
+          endpoint = API_ENDPOINTS.CONTACT.DELETE(deleteConfirm.id);
           break;
         case 'feedback':
-          endpoint = `https://gisserver.vercel.app/api/feedback?id=${deleteConfirm.id}`;
+          endpoint = API_ENDPOINTS.FEEDBACK.DELETE(deleteConfirm.id);
           break;
       }
 
@@ -558,7 +563,7 @@ export default function AdminDashboard() {
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/users?id=${userId}`, {
+      const response = await fetch(API_ENDPOINTS.USERS.DELETE(userId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -581,7 +586,7 @@ export default function AdminDashboard() {
 
   const handleUpdateContactStatus = async (contactId: string, newStatus: string) => {
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/contact?id=${contactId}`, {
+      const response = await fetch(API_ENDPOINTS.CONTACT.UPDATE(contactId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -610,7 +615,7 @@ export default function AdminDashboard() {
   const fetchFeedbacks = async () => {
     setFeedbacksLoading(true);
     try {
-      const response = await fetch('https://gisserver.vercel.app/api/feedback', {
+      const response = await fetch(API_ENDPOINTS.FEEDBACK.LIST, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -629,7 +634,7 @@ export default function AdminDashboard() {
 
   const handleUpdateFeedbackStatus = async (feedbackId: string, newStatus: string) => {
     try {
-      const response = await fetch(`https://gisserver.vercel.app/api/feedback?id=${feedbackId}`, {
+      const response = await fetch(API_ENDPOINTS.FEEDBACK.UPDATE(feedbackId), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -677,7 +682,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch('https://gisserver.vercel.app/api/coupons?active=true');
+      const response = await fetch(API_ENDPOINTS.COUPONS.LIST_ACTIVE);
       const data = await response.json();
       
       if (data.success && Array.isArray(data.data)) {
@@ -808,21 +813,28 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <Tabs defaultValue="appointments">
+        <Tabs defaultValue={isUser ? "appointments" : "appointments"}>
           <TabsList className="bg-secondary border border-border mb-6">
+            {/* Tabs visible to both admin and users */}
             <TabsTrigger value="appointments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Appointments</TabsTrigger>
-            <TabsTrigger value="reviews" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Star className="w-4 h-4 mr-1" /> Reviews
-            </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Users className="w-4 h-4 mr-1" /> Users
-            </TabsTrigger>
-            <TabsTrigger value="coupons" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Tag className="w-4 h-4 mr-1" /> Coupons
-            </TabsTrigger>
             <TabsTrigger value="contacts" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <AlertCircle className="w-4 h-4 mr-1" /> Contacts
             </TabsTrigger>
+
+            {/* Tabs visible only to admins */}
+            {isAdmin && (
+              <>
+                <TabsTrigger value="reviews" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Star className="w-4 h-4 mr-1" /> Reviews
+                </TabsTrigger>
+                <TabsTrigger value="users" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Users className="w-4 h-4 mr-1" /> Users
+                </TabsTrigger>
+                <TabsTrigger value="coupons" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Tag className="w-4 h-4 mr-1" /> Coupons
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           {/* Appointments Tab */}
@@ -900,8 +912,8 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* Reviews Tab */}
-          <TabsContent value="reviews">
+          {/* Reviews Tab - Admin Only */}
+          {isAdmin && <TabsContent value="reviews">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -963,10 +975,10 @@ export default function AdminDashboard() {
                 </table>
               </div>
             </div>
-          </TabsContent>
+          </TabsContent>}
 
-          {/* Users Tab */}
-          <TabsContent value="users">
+          {/* Users Tab - Admin Only */}
+          {isAdmin && <TabsContent value="users">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -1028,10 +1040,10 @@ export default function AdminDashboard() {
                 </table>
               </div>
             </div>
-          </TabsContent>
+          </TabsContent>}
 
-          {/* Coupons Tab */}
-          <TabsContent value="coupons">
+          {/* Coupons Tab - Admin Only */}
+          {isAdmin && <TabsContent value="coupons">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -1087,9 +1099,9 @@ export default function AdminDashboard() {
                 </motion.div>
               ))}
             </div>
-          </TabsContent>
+          </TabsContent>}
 
-          {/* Contacts Tab */}
+          {/* Contacts Tab - Visible to All */}
           <TabsContent value="contacts">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative flex-1">

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import SectionHeading from "@/components/SectionHeading";
 import { toast } from "sonner";
+import { API_ENDPOINTS } from "@/config/api";
 import heroVideo from "@/assets/hero-video.mp4";
 import heroImage from "@/assets/hero-car.jpg";
 import interiorImg from "/interior-detail.jpg";
@@ -83,7 +84,7 @@ const validateCoupon = async () => {
   setCouponDiscount(0);
 
   try {
-    const response = await fetch("https://gisserver.vercel.app/api/coupons?active=true");
+    const response = await fetch(API_ENDPOINTS.COUPONS.LIST_ACTIVE);
     const data = await response.json();
 
     if (data.success && Array.isArray(data.data)) {
