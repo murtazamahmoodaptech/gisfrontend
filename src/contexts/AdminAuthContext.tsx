@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { API_ENDPOINTS } from "@/config/api";
+import { getRoleFromToken } from "@/utils/jwt";
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
@@ -41,46 +42,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.setItem("admin_auth", "true");
         sessionStorage.setItem("admin_token", data.token);
 
-        // Try to fetch user list to find current user and get their role
-        try {
-          const usersResponse = await fetch(API_ENDPOINTS.USERS.LIST, {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${data.token}`,
-              "Content-Type": "application/json",
-            },
-          });
-          
-          if (usersResponse.ok) {
-            const usersData = await usersResponse.json();
-            
-            // Try to find the current user in the list
-            // Assuming the response contains user email in the login data or we can extract from token
-            let currentUserRole = 'user';
-            
-            if (usersData.data && Array.isArray(usersData.data)) {
-              // Look for user with matching email if available
-              if (data.email) {
-                const currentUser = usersData.data.find((user: any) => user.email === data.email);
-                if (currentUser && currentUser.role) {
-                  currentUserRole = currentUser.role;
-                }
-              }
-            }
-            
-            setUserRole(currentUserRole);
-            sessionStorage.setItem("user_role", currentUserRole);
-          } else {
-            // If users endpoint fails, default to 'user'
-            setUserRole('user');
-            sessionStorage.setItem("user_role", 'user');
-          }
-        } catch (error) {
-          console.error("[v0] Error fetching users:", error);
-          // Default to user role if fetch fails
-          setUserRole('user');
-          sessionStorage.setItem("user_role", 'user');
-        }
+        // Decode JWT token to extract role
+        const role = getRoleFromToken(data.token);
+        console.log("[v0] Extracted role from token:", role);
+        
+        setUserRole(role);
+        sessionStorage.setItem("user_role", role || 'user');
         
         return true;
       }
