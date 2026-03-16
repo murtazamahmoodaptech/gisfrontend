@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, Mail, Moon, Sun } from "lucide-react";
+import { Menu, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import logo from "@/assets/logo.png";
@@ -43,18 +43,9 @@ export default function Navbar() {
         </div>
 
         <div className="hidden lg:flex items-center gap-4">
-          <a href="mailto:info@globalintegratedsupport.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-            <Mail className="w-4 h-4" />
-            info@globalintegratedsupport.com
-          </a>
-          <div className="w-px h-6 bg-border"></div>
-          <a href="tel:+15551234567" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-            <Phone className="w-4 h-4" />
-            (555) 123-4567
-          </a>
           <button 
             onClick={toggleTheme}
-            className="p-2 rounded-lg bg-secondary/50 hover:bg-primary/20 transition-colors ml-2"
+            className="p-2 rounded-lg bg-secondary/50 hover:bg-primary/20 transition-colors"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? (
@@ -98,10 +89,6 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <a href="mailto:info@globalintegratedsupport.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                <Mail className="w-4 h-4" />
-                info@globalintegratedsupport.com
-              </a>
               <div className="flex items-center gap-2 pt-2">
                 <button 
                   onClick={toggleTheme}
