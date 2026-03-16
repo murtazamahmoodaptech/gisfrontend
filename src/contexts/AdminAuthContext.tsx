@@ -36,15 +36,14 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (data.success && data.token) {
-        console.log("[v0] Login response:", data);
         setIsAuthenticated(true);
         setToken(data.token);
         sessionStorage.setItem("admin_auth", "true");
         sessionStorage.setItem("admin_token", data.token);
 
-        // Try to fetch current user to get role
+        // Try to fetch user list to find current user and get their role
         try {
-          const userResponse = await fetch(API_ENDPOINTS.AUTH.CURRENT_USER, {
+          const usersResponse = await fetch(API_ENDPOINTS.USERS.LIST, {
             method: "GET",
             headers: {
               "Authorization": `Bearer ${data.token}`,
@@ -52,23 +51,35 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
             },
           });
           
-          const userData = await userResponse.json();
-          console.log("[v0] Current user data:", userData);
-          
-          // Extract role from response - handle different response structures
-          const role = userData.role || userData.data?.role || data.role || 'user';
-          console.log("[v0] Detected role from current user:", role);
-          
-          setUserRole(role);
-          sessionStorage.setItem("user_role", role);
-          console.log("[v0] Stored user role in sessionStorage:", role);
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            
+            // Try to find the current user in the list
+            // Assuming the response contains user email in the login data or we can extract from token
+            let currentUserRole = 'user';
+            
+            if (usersData.data && Array.isArray(usersData.data)) {
+              // Look for user with matching email if available
+              if (data.email) {
+                const currentUser = usersData.data.find((user: any) => user.email === data.email);
+                if (currentUser && currentUser.role) {
+                  currentUserRole = currentUser.role;
+                }
+              }
+            }
+            
+            setUserRole(currentUserRole);
+            sessionStorage.setItem("user_role", currentUserRole);
+          } else {
+            // If users endpoint fails, default to 'user'
+            setUserRole('user');
+            sessionStorage.setItem("user_role", 'user');
+          }
         } catch (error) {
-          console.error("[v0] Error fetching current user:", error);
-          // If current user endpoint fails, try to use role from login response
-          const role = data.role || 'user';
-          setUserRole(role);
-          sessionStorage.setItem("user_role", role);
-          console.log("[v0] Fallback - Set role to:", role);
+          console.error("[v0] Error fetching users:", error);
+          // Default to user role if fetch fails
+          setUserRole('user');
+          sessionStorage.setItem("user_role", 'user');
         }
         
         return true;

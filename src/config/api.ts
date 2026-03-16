@@ -12,7 +12,6 @@ export const API_ENDPOINTS = {
   // Auth endpoints
   AUTH: {
     LOGIN: `${API_BASE_URL}/auth/login`,
-    CURRENT_USER: `${API_BASE_URL}/auth/current-user`,
   },
   
   // Appointments endpoints
